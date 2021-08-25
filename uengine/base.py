@@ -92,7 +92,8 @@ class Base:
     def __setup_cache():
         ctx.log.debug("Setting up a cache")
         if "memcache_backends" in ctx.cfg:
-            return MemcachedCache(ctx.cfg.get("memcache_backends"))
+            default_timeout = ctx.cfg.get("memcache_default_ttl_seconds", 300)
+            return MemcachedCache(ctx.cfg.get("memcache_backends"), default_timeout)
 
         from .cache import patch_delete_many
         SimpleCache.delete_many = patch_delete_many
