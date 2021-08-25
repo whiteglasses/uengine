@@ -128,8 +128,8 @@ class StorableModel(AbstractModel):
             ctx.log.debug("ModelCache L1 HIT %s %.3f seconds", cache_key, td)
             return constructor(**data)
 
-        if ctx.cache.has(cache_key):
-            data = ctx.cache.get(cache_key)
+        data = ctx.cache.get(cache_key)
+        if data is not None:
             req_cache_set(cache_key, data)
             td = (datetime.now() - d1).total_seconds()
             ctx.log.debug("ModelCache L2 HIT %s %.3f seconds", cache_key, td)
@@ -137,7 +137,6 @@ class StorableModel(AbstractModel):
 
         obj = getter()
         if obj:
-
             data = obj.to_dict()
             ctx.cache.set(cache_key, data)
             req_cache_set(cache_key, data)
