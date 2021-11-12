@@ -409,27 +409,34 @@ class AbstractModel(metaclass=ModelMeta):
                         options[key] = value
             if loud:
                 ctx.log.debug(
-                    "Creating index with options: %s, %s", keys, options)
+                    "Creating index for collection '%s' with options: %s, %s", cls.collection, keys, options)
 
             for db in cls._get_possible_databases():
                 try:
-                    db.conn[cls.collection].create_index(keys, **options)
+                    index_name = db.conn[cls.collection].create_index(keys, **options)
+                    if loud:
+                        ctx.log.debug("Created index '%s' for collection '%s'", index_name, cls.collection)
                 except OperationFailure as e:
                     if e.details.get("codeName") == "IndexOptionsConflict" or e.details.get("code") == 85:
                         if overwrite:
                             if loud:
                                 ctx.log.debug(
-                                    "Dropping index %s as conflicting", keys)
+                                    "Dropping index '%s' from collection '%s' as conflicting", keys, cls.collection)
                             db.conn[cls.collection].drop_index(keys)
                             if loud:
                                 ctx.log.debug(
-                                    "Creating index with options: %s, %s", keys, options)
-                            db.conn[cls.collection].create_index(
-                                keys, **options)
+                                    "Creating index for collection '%s' with options: %s, %s",
+                                    cls.collection, keys, options)
+                            index_name = db.conn[cls.collection].create_index(keys, **options)
+                            if loud:
+                                ctx.log.debug("Created index '%s' for collection '%s'", index_name, cls.collection)
+                            continue
                         else:
                             ctx.log.error(
-                                "Index %s conflicts with an existing one, use overwrite param to fix it", keys
+                                "Index '%s' from collection '%s' conflicts with an existing one, use overwrite param "
+                                "to fix it", cls.collection, keys
                             )
+                    raise
 
 
 def save_required(func):
