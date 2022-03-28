@@ -232,7 +232,7 @@ class AbstractModel(metaclass=ModelMeta):
     def _before_delete(self):
         pass
 
-    def _after_save(self, is_new):
+    def _after_save(self, is_new, old_state=None):
         pass
 
     def _after_delete(self):
@@ -317,11 +317,12 @@ class AbstractModel(metaclass=ModelMeta):
                 ctx.log.error("error executing save hook %s on model %s(%s): %s",
                               hook.__class__.__name__, self.__class__.__name__, self._id, e)
 
+        old_state = getattr(self, "_initial_state", None)
         self.__set_initial_state()
         if invalidate_cache:
             self.invalidate()
         if not skip_callback:
-            self._after_save(is_new)
+            self._after_save(is_new, old_state)
 
         return self
 
